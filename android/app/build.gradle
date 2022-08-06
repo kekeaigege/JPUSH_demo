@@ -1,0 +1,90 @@
+def localProperties = new Properties()
+def localPropertiesFile = rootProject.file('local.properties')
+if (localPropertiesFile.exists()) {
+    localPropertiesFile.withReader('UTF-8') { reader ->
+        localProperties.load(reader)
+    }
+}
+
+def flutterRoot = localProperties.getProperty('flutter.sdk')
+
+def flutterVersionCode = localProperties.getProperty('flutter.versionCode')
+if (flutterVersionCode == null) {
+    flutterVersionCode = '1'
+}
+
+def flutterVersionName = localProperties.getProperty('flutter.versionName')
+if (flutterVersionName == null) {
+    flutterVersionName = '1.0'
+}
+
+apply plugin: 'com.android.application'
+apply plugin: 'kotlin-android'
+apply from: "$flutterRoot/packages/flutter_tools/gradle/flutter.gradle"
+def keystorePropertiesFile = rootProject.file("key.properties")
+def keystoreProperties = new Properties()
+keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+android {
+    compileSdkVersion flutter.compileSdkVersion
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    kotlinOptions {
+        jvmTarget = '1.8'
+    }
+
+    sourceSets {
+        main.java.srcDirs += 'src/main/kotlin'
+    }
+
+defaultConfig {
+    applicationId "com.example.item_3"
+    minSdkVersion 21
+    targetSdkVersion 30
+    versionCode flutterVersionCode.toInteger()
+    versionName flutterVersionName
+    //===============添加====================
+    ndk {
+        //选择要添加的对应 cpu 类型的 .so 库。
+        abiFilters 'armeabi', 'x86'
+    }
+
+    manifestPlaceholders = [
+            JPUSH_PKGNAME :  "com.example.item_3",//极光推送注册的包名
+            JPUSH_APPKEY : "3e8cb50326d15ea2c09201cc", // NOTE: JPush 上注册的包名对应的 Appkey.
+            JPUSH_CHANNEL : "developer-default", //暂时填写默认值即可
+    ]
+}
+
+    signingConfigs {
+        debug {
+            keyAlias keystoreProperties['keyAlias']
+            keyPassword keystoreProperties['keyPassword']
+            storeFile file(keystoreProperties['storeFile'])
+            storePassword keystoreProperties['storePassword']
+        }
+        release {
+            keyAlias keystoreProperties['keyAlias']
+            keyPassword keystoreProperties['keyPassword']
+            storeFile file(keystoreProperties['storeFile'])
+            storePassword keystoreProperties['storePassword']
+        }
+    }
+}
+
+flutter {
+    source '../..'
+}
+
+dependencies {
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+//    implementation 'com.huawei.agconnect:agconnect-core:1.5.2.300'
+//    // // 接入华为厂商
+//    implementation 'com.huawei.hms:push:5.3.0.301'
+//    implementation 'cn.jiguang.sdk.plugin:huawei:4.6.0'// 极光厂商插件版本与接入 JPush 版本保持一致，下同
+    implementation 'cn.jiguang.sdk:jpush:4.7.2'  // 此处以JPush 4.7.2 版本为例。
+    implementation 'cn.jiguang.sdk:jcore:3.3.0'  // 此处以JCore 3.3.0 版本为例。
+}
